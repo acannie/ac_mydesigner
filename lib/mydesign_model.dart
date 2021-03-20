@@ -3,18 +3,9 @@ import 'package:http/http.dart' as http; //httpリクエスト用
 import 'dart:async'; //非同期処理用
 import 'dart:convert'; //httpレスポンスをJSON形式に変換用
 import 'package:image_picker/image_picker.dart';
-// import 'package:dio/dio.dart';
-import 'dart:io';
-import 'dart:html' as html;
-import 'dart:typed_data';
 import 'package:http_parser/http_parser.dart';
-// import 'package:flutter/services.dart';
-// import 'package:path_provider/path_provider.dart';
-// import 'package:flutter_color/flutter_color.dart';
-// import 'package:tinycolor/tinycolor.dart';
 import 'dart:math';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:image_whisperer/image_whisperer.dart';
 
 class UploadImageDemo extends StatefulWidget {
   UploadImageDemo() : super();
@@ -24,21 +15,25 @@ class UploadImageDemo extends StatefulWidget {
 }
 
 class UploadImageDemoState extends State<UploadImageDemo> {
-  Future<Image> futureImage;
-  Image image;
+  //
+  static final String uploadEndPoint = 'http://127.0.0.1:5000/';
+  Future<MemoryImage> future_image_choice;
+  MemoryImage image;
+  Future<MyDesignData> future_my_design_data;
   String status = '';
   String errMessage = 'Error Uploading Image';
-  final String url = 'http://127.0.0.1:5000/';
-  String jsonString;
-  Size size;
-  File _image;
 
-  List<int> _selectedFile;
-  Uint8List _bytesData;
-  // GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
-
-  MyDesignData myDesignData;
-  // Future<MyDesignData> futureMyDesignData;
+  chooseImage() {
+    // debug
+    print('Choose Image');
+    setState(() {
+      future_image_choice = ImagePicker()
+          .getImage(source: ImageSource.gallery)
+          .then((file) =>
+              file.readAsBytes().then((bytes) => new MemoryImage(bytes)));
+    });
+    setStatus('');
+  }
 
   setStatus(String message) {
     setState(() {
@@ -46,155 +41,60 @@ class UploadImageDemoState extends State<UploadImageDemo> {
     });
   }
 
-  // chooseImage() async {
-  //   setState(() {
-  //     futureImage = ImagePicker().getImage(source: ImageSource.gallery).then(
-  //         (file) => file
-  //             .readAsBytes()
-  //             .then((bytes) => Image.memory(bytes, fit: BoxFit.fill)));
-  //   });
-  //   setStatus('');
-  // }
-
-  // Future _getImageFromGallery() async {
-  //   final _pickedFile =
-  //       await ImagePicker().getImage(source: ImageSource.gallery);
-
-  //   setState(() {
-  //     if (_pickedFile != null) {
-  //       _image = File(_pickedFile.path);
-  //       futureImage = _pickedFile
-  //           .readAsBytes()
-  //           .then((bytes) => Image.memory(bytes, fit: BoxFit.fill));
-  //     }
-  //   });
-  //   setStatus('');
-  // }
-
-  // startUpload() {
-  //   setStatus('Uploading Image...');
-  //   if (null == image) {
-  //     setStatus(errMessage);
-  //     return;
-  //   }
-  //   // upload();
-  // }
-
-  // upload() async {
-  //   setStatus('yey');
-  //   // var res2 = await sendFile(url, _image);
-  //   // var res2 = await _request();
-  //   // setState(() {
-  //   //   status = res2.toString();
-  //   // });
-  //   await _request();
-  // }
-
-  startWebFilePicker() async {
-    html.InputElement uploadInput = html.FileUploadInputElement();
-    uploadInput.multiple = true;
-    uploadInput.draggable = true;
-    uploadInput.click();
-
-    // final picker = ImagePicker();
-
-    // Future getImage() async {
-    //   final pickedFile = await picker.getImage(source: ImageSource.camera);
-
-    //   setState(() {
-    //     if (pickedFile != null) {
-    //       _image = File(pickedFile.path);
-    //     } else {
-    //       print('No image selected.');
-    //     }
-    //   });
-    // }
-
-    uploadInput.onChange.listen((e) {
-      final files = uploadInput.files;
-      final file = files[0];
-      final reader = new html.FileReader();
-
-      reader.onLoadEnd.listen((e) {
-        _handleResult(reader.result);
-      });
-      reader.readAsDataUrl(file);
-
-      reader.onLoad.first.then((res) {
-        final encoded = reader.result as String;
-        final imageBase64 =
-            encoded.replaceFirst(RegExp(r'data:image/[^;]+;base64,'), '');
-        File _itemPicIoFile = File.fromRawPath(base64Decode(imageBase64));
-        setState(() => {_image = _itemPicIoFile});
-      });
-    });
-
-    // final _pickedFile =
-    //     await ImagePicker().getImage(source: ImageSource.gallery);
-
-    // setState(() {
-    //   if (_pickedFile != null) {
-    //     _image = File(_pickedFile.path);
-    //     futureImage = _pickedFile
-    //         .readAsBytes()
-    //         .then((bytes) => Image.memory(bytes, fit: BoxFit.fill));
-    //   }
-    // });
-
-    setStatus("image picked");
+  startUpload() {
+    // debug
+    print('Start Upload');
+    setStatus('Uploading Image...');
+    if (image == null) {
+      print('Image is null');
+      setStatus(errMessage);
+      return;
+    }
+    upload();
   }
 
-  void _handleResult(Object result) {
-    setState(() {
-      _bytesData = Base64Decoder().convert(result.toString().split(",").last);
-      _selectedFile = _bytesData;
-    });
-  }
-
-  makeRequest() async {
-    var url = Uri.parse("http://localhost:5000/");
+  upload() async {
+    var url = Uri.parse(uploadEndPoint);
     var request = new http.MultipartRequest("POST", url);
-
-    request.files.add(http.MultipartFile.fromBytes(
+    request.files.add(await http.MultipartFile.fromBytes(
       'file',
-      _selectedFile,
+      image.bytes,
       contentType: new MediaType('application', 'octet-stream'),
       filename: "file_up.jpg",
     ));
 
-    await request.send().then((response) {
-      if (response.statusCode == 200) {
-        response.stream.transform(utf8.decoder).listen((value) {
-          jsonString = value;
-          setState(() {
-            myDesignData = MyDesignData.fromJson(json.decode(jsonString));
-          });
-        });
-      }
-    });
-  }
-
-  Future<MyDesignData> retFutureMyDesignData(String jsonString) async {
-    return MyDesignData.fromJson(json.decode(jsonString));
+    // debug
+    print('Uploading');
+    // TODO
+    // setStatus('Uploaded!');
+    // TODO
+    // status check
+    future_my_design_data = request.send().then((response) => response.stream
+        .bytesToString()
+        .then((body) => MyDesignData.fromJson(json.decode(body))));
   }
 
   Widget showImage() {
-    if (_image == null) {
-      return Center(
-        child: Container(
-          child: Text(
+    return FutureBuilder<MemoryImage>(
+      future: future_image_choice,
+      builder: (BuildContext context, AsyncSnapshot<MemoryImage> snapshot) {
+        if (snapshot.connectionState == ConnectionState.done &&
+            null != snapshot.data) {
+          image = snapshot.data;
+          return Flexible(child: Image.memory(image.bytes, fit: BoxFit.fill));
+        } else if (null != snapshot.error) {
+          return const Text(
+            'Error Picking Image',
+            textAlign: TextAlign.center,
+          );
+        } else {
+          return const Text(
             'No Image Selected',
-          ),
-          height: 100,
-          width: 100,
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.blue),
-          ),
-        ),
-      );
-    } else {
-      return Center(child: Image.file(_image));
-    }
+            textAlign: TextAlign.center,
+          );
+        }
+      },
+    );
   }
 
   Widget appBarMain() {
@@ -261,11 +161,11 @@ class UploadImageDemoState extends State<UploadImageDemo> {
   Widget showMyDesign() {
     Size screenSize = MediaQuery.of(context).size;
     return FutureBuilder<MyDesignData>(
-      future: retFutureMyDesignData(jsonString),
+      future: future_my_design_data,
       builder: (BuildContext context, AsyncSnapshot<MyDesignData> snapshot) {
         if (snapshot.connectionState == ConnectionState.done &&
             null != snapshot.data) {
-          myDesignData = snapshot.data;
+          var myDesignData = snapshot.data;
           return ConstrainedBox(
             constraints: BoxConstraints(maxWidth: 600),
             child: Container(
@@ -362,11 +262,11 @@ class UploadImageDemoState extends State<UploadImageDemo> {
 
     List<String> columnTitles = ["", "色相", "彩度", "明度"];
     return FutureBuilder<MyDesignData>(
-      future: retFutureMyDesignData(jsonString),
+      future: future_my_design_data,
       builder: (BuildContext context, AsyncSnapshot<MyDesignData> snapshot) {
         if (snapshot.connectionState == ConnectionState.done &&
             null != snapshot.data) {
-          myDesignData = snapshot.data;
+          var myDesignData = snapshot.data;
           return ConstrainedBox(
             constraints: BoxConstraints(maxWidth: 300),
             child: Column(
@@ -496,14 +396,14 @@ class UploadImageDemoState extends State<UploadImageDemo> {
                   Padding(
                     padding: EdgeInsets.all(20),
                     child: OutlinedButton(
-                      onPressed: startWebFilePicker,
+                      onPressed: chooseImage,
                       child: Text('Choose Image'),
                     ),
                   ),
                   Padding(
                     padding: EdgeInsets.all(20),
                     child: OutlinedButton(
-                      onPressed: makeRequest,
+                      onPressed: startUpload,
                       child: Text('Upload Image'),
                     ),
                   ),
