@@ -1,8 +1,8 @@
 name: gh-pages-app
 on:
-  push:
-    branches:
-      - main
+ push:
+   branches:
+     - main
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -15,3 +15,14 @@ jobs:
 #    - run: flutter test
     - run: flutter build web
 
+    - name: Specify relative path for the app
+      run: sed -i 's#base href="/"#base href="/ac_mydesigner/"#' ./build/web/index.html
+    
+    - name: Deploy to GitHub Pages
+      if: success()
+      uses: crazy-max/ghaction-github-pages@v2
+      with:
+        target_branch: gh-pages
+        build_dir: ./build/web
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
