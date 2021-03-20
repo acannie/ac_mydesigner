@@ -1,5 +1,8 @@
-name: flutter-build
-on: [push]
+name: gh-pages-app
+on:
+  push:
+    branches:
+      - main
 jobs:
   build:
     runs-on: ubuntu-latest
