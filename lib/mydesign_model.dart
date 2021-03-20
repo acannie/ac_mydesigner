@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart'; //google提供のUIデザイン
 import 'package:http/http.dart' as http; //httpリクエスト用
 import 'dart:async'; //非同期処理用
-import 'dart:convert'; //httpレスポンスをJSON形式に変換用
 import 'package:image_picker/image_picker.dart';
+import 'package:http_parser/http_parser.dart';
 
 class UploadImageDemo extends StatefulWidget {
   UploadImageDemo() : super();
@@ -15,18 +15,16 @@ class UploadImageDemo extends StatefulWidget {
 
 class UploadImageDemoState extends State<UploadImageDemo> {
   //
-  static final String uploadEndPoint = 'http://127.0.0.1:5001/';
-  Future<Image> future;
-  Image image;
+  static final String uploadEndPoint = 'http://127.0.0.1:5000/';
+  Future<MemoryImage> future;
+  MemoryImage image;
   String status = '';
   String errMessage = 'Error Uploading Image';
 
   chooseImage() {
     setState(() {
       future = ImagePicker().getImage(source: ImageSource.gallery).then(
-          (file) => file
-              .readAsBytes()
-              .then((bytes) => Image.memory(bytes, fit: BoxFit.fill)));
+          (file) => file.readAsBytes().then((bytes) => new MemoryImage(bytes)));
     });
     setStatus('');
   }
@@ -47,17 +45,33 @@ class UploadImageDemoState extends State<UploadImageDemo> {
   }
 
   upload() async {
-    // TODO
+    var url = Uri.parse(uploadEndPoint);
+    var request = new http.MultipartRequest("POST", url);
+    request.files.add(await http.MultipartFile.fromBytes(
+      'file',
+      image.bytes,
+      contentType: new MediaType('application', 'octet-stream'),
+      filename: "file_up.jpg",
+    ));
+
+    request.send().then((response) {
+      setStatus('Uploaded!');
+      print(response.statusCode);
+      if (response.statusCode == 200) {
+        // TODO
+        print(response.stream.bytesToString());
+      }
+    });
   }
 
   Widget showImage() {
-    return FutureBuilder<Image>(
+    return FutureBuilder<MemoryImage>(
       future: future,
-      builder: (BuildContext context, AsyncSnapshot<Image> snapshot) {
+      builder: (BuildContext context, AsyncSnapshot<MemoryImage> snapshot) {
         if (snapshot.connectionState == ConnectionState.done &&
             null != snapshot.data) {
           image = snapshot.data;
-          return Flexible(child: snapshot.data);
+          return Flexible(child: Image.memory(image.bytes, fit: BoxFit.fill));
         } else if (null != snapshot.error) {
           return const Text(
             'Error Picking Image',
