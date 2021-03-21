@@ -16,7 +16,7 @@ class UploadImageDemo extends StatefulWidget {
 
 class UploadImageDemoState extends State<UploadImageDemo> {
   //
-  static final String uploadEndPoint = 'http://127.0.0.1:5000/';
+  static final String uploadEndPoint = 'http://127.0.0.1:3000/ac_mydesign/';
   Future<MemoryImage> future_image_choice;
   MemoryImage image;
   Future<MyDesignData> future_my_design_data;
