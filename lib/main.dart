@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'mydesign_model.dart';
 import 'package:provider/provider.dart';
+
+import 'view.dart';
+import 'pick_image.dart';
+import 'upload_image.dart';
 
 void main() {
   runApp(MyApp());

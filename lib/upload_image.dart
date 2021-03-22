@@ -1,0 +1,67 @@
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
+import 'package:provider/provider.dart';
+
+import 'mydesign_model.dart';
+import 'pick_image.dart';
+
+class ImageUploadController with ChangeNotifier {
+  Future<MyDesignData> _myDesignDataFuture;
+
+  Future<MyDesignData> get myDesignDataFuture => _myDesignDataFuture;
+
+  static final String uploadEndPoint = 'http://127.0.0.1:3000/ac_mydesign/';
+
+  Future<MyDesignData> upload(MemoryImage image) async {
+    var url = Uri.parse(uploadEndPoint);
+    var request = new http.MultipartRequest("POST", url);
+    request.files.add(http.MultipartFile.fromBytes(
+      'file',
+      image.bytes,
+      contentType: new MediaType('application', 'octet-stream'),
+      filename: "file_up.jpg",
+    ));
+
+    // notify before
+    _myDesignDataFuture = request.send().then((response) => response.stream
+        .bytesToString()
+        .then((body) => MyDesignData.fromJson(json.decode(body))));
+    notifyListeners();
+    return _myDesignDataFuture;
+  }
+}
+
+class ImageUploadButtonWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final PickedImageController image_controller =
+        Provider.of<PickedImageController>(context);
+
+    final ImageUploadController upload_controller =
+        Provider.of<ImageUploadController>(context);
+
+    return FutureBuilder<MemoryImage>(
+        future: image_controller.imageFuture,
+        builder: (BuildContext context, AsyncSnapshot<MemoryImage> snapshot) {
+          if (snapshot.connectionState == ConnectionState.done &&
+              null != snapshot.data) {
+            final image = snapshot.data;
+            return Padding(
+              padding: EdgeInsets.all(20),
+              child: OutlinedButton(
+                onPressed: () {
+                  return upload_controller.upload(image);
+                },
+                child: Text('Upload Image'),
+              ),
+            );
+          } else {
+            return SizedBox.shrink();
+          }
+        });
+  }
+}
