@@ -37,6 +37,7 @@ dependencies:
   tinycolor: ^1.0.3
   auto_size_text: ^2.1.0
   image_whisperer: ^0.11.1
+  provider: ^5.0.0
 
 dev_dependencies:
   flutter_test:

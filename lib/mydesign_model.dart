@@ -6,126 +6,122 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http_parser/http_parser.dart';
 import 'dart:math';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:provider/provider.dart';
 
-class UploadImageDemo extends StatefulWidget {
-  UploadImageDemo() : super();
+class PickedImageController with ChangeNotifier {
+  Future<MemoryImage> _imageFuture;
 
-  @override
-  UploadImageDemoState createState() => UploadImageDemoState();
+  Future<MemoryImage> get imageFuture => _imageFuture;
+
+  Future<MemoryImage> pickImage() async {
+    _imageFuture = ImagePicker().getImage(source: ImageSource.gallery).then(
+        (file) => file.readAsBytes().then((bytes) => new MemoryImage(bytes)));
+
+    // For other components
+    notifyListeners();
+    return _imageFuture;
+  }
 }
 
-class UploadImageDemoState extends State<UploadImageDemo> {
-  //
+class PickedImageWidget extends StatelessWidget {
+  final PickedImageController controller = PickedImageController();
+
+  Future<MemoryImage> _future;
+
+  @override
+  Widget build(BuildContext context) {
+    final PickedImageController controller =
+        Provider.of<PickedImageController>(context);
+
+    // https://qiita.com/beeeyan/items/8f39120501b6334350ed
+    return Padding(
+      padding: EdgeInsets.all(20),
+      child: FutureBuilder<MemoryImage>(
+          future: _future,
+          builder: (BuildContext context, AsyncSnapshot<MemoryImage> snapshot) {
+            if (snapshot.connectionState == ConnectionState.done &&
+                null != snapshot.data) {
+              final image = snapshot.data;
+              return InkWell(
+                  onTap: () {
+                    _future = controller.pickImage();
+                  },
+                  child: Flexible(
+                      child: Image.memory(image.bytes, fit: BoxFit.fill)));
+            } else {
+              return Padding(
+                padding: EdgeInsets.all(20),
+                child: OutlinedButton(
+                  onPressed: () {
+                    _future = controller.pickImage();
+                  },
+                  child: Text('Choose Image'),
+                ),
+              );
+            }
+          }),
+    );
+  }
+}
+
+class ImageUploadController with ChangeNotifier {
+  Future<MyDesignData> _myDesignDataFuture;
+
+  Future<MyDesignData> get myDesignDataFuture => _myDesignDataFuture;
+
   static final String uploadEndPoint = 'http://127.0.0.1:3000/ac_mydesign/';
-  Future<MemoryImage> future_image_choice;
-  MemoryImage image;
-  Future<MyDesignData> future_my_design_data;
-  String status = '';
-  String errMessage = 'Error Uploading Image';
 
-  chooseImage() {
-    // debug
-    print('Choose Image');
-    setState(() {
-      future_image_choice = ImagePicker()
-          .getImage(source: ImageSource.gallery)
-          .then((file) =>
-              file.readAsBytes().then((bytes) => new MemoryImage(bytes)));
-    });
-    setStatus('');
-  }
-
-  setStatus(String message) {
-    setState(() {
-      status = message;
-    });
-  }
-
-  startUpload() {
-    // debug
-    print('Start Upload');
-    setStatus('Uploading Image...');
-    if (image == null) {
-      print('Image is null');
-      setStatus(errMessage);
-      return;
-    }
-    upload();
-  }
-
-  upload() async {
+  Future<MyDesignData> upload(MemoryImage image) async {
     var url = Uri.parse(uploadEndPoint);
     var request = new http.MultipartRequest("POST", url);
-    request.files.add(await http.MultipartFile.fromBytes(
+    request.files.add(http.MultipartFile.fromBytes(
       'file',
       image.bytes,
       contentType: new MediaType('application', 'octet-stream'),
       filename: "file_up.jpg",
     ));
 
-    // debug
-    print('Uploading');
-    // TODO
-    // setStatus('Uploaded!');
-    // TODO
-    // status check
-    future_my_design_data = request.send().then((response) => response.stream
+    // notify before
+    _myDesignDataFuture = request.send().then((response) => response.stream
         .bytesToString()
         .then((body) => MyDesignData.fromJson(json.decode(body))));
+    notifyListeners();
+    return _myDesignDataFuture;
   }
+}
 
-  Widget showImage() {
+class ImageUploadButtonWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final PickedImageController image_controller =
+        Provider.of<PickedImageController>(context);
+
+    final ImageUploadController upload_controller =
+        Provider.of<ImageUploadController>(context);
+
     return FutureBuilder<MemoryImage>(
-      future: future_image_choice,
-      builder: (BuildContext context, AsyncSnapshot<MemoryImage> snapshot) {
-        if (snapshot.connectionState == ConnectionState.done &&
-            null != snapshot.data) {
-          image = snapshot.data;
-          return Flexible(child: Image.memory(image.bytes, fit: BoxFit.fill));
-        } else if (null != snapshot.error) {
-          return const Text(
-            'Error Picking Image',
-            textAlign: TextAlign.center,
-          );
-        } else {
-          return const Text(
-            'No Image Selected',
-            textAlign: TextAlign.center,
-          );
-        }
-      },
-    );
+        future: image_controller.imageFuture,
+        builder: (BuildContext context, AsyncSnapshot<MemoryImage> snapshot) {
+          if (snapshot.connectionState == ConnectionState.done &&
+              null != snapshot.data) {
+            final image = snapshot.data;
+            return Padding(
+              padding: EdgeInsets.all(20),
+              child: OutlinedButton(
+                onPressed: () {
+                  return upload_controller.upload(image);
+                },
+                child: Text('Upload Image'),
+              ),
+            );
+          } else {
+            return SizedBox.shrink();
+          }
+        });
   }
+}
 
-  Widget appBarMain() {
-    return AppBar(
-      leading: Icon(Icons.menu),
-      title: const Text('AC MyDesigner'),
-      backgroundColor: Colors.orange,
-      centerTitle: true,
-      actions: <Widget>[
-        IconButton(
-          icon: Icon(
-            Icons.face,
-            color: Colors.white,
-          ),
-        ),
-        IconButton(
-          icon: Icon(
-            Icons.email,
-            color: Colors.white,
-          ),
-        ),
-        IconButton(
-          icon: Icon(
-            Icons.favorite,
-            color: Colors.white,
-          ),
-        ),
-      ],
-    );
-  }
-
+class Utils {
   Border markLineBorder(int i, int j, int n) {
     int halfwayPoint = (n / 2).round();
     return Border(
@@ -158,12 +154,31 @@ class UploadImageDemoState extends State<UploadImageDemo> {
     );
   }
 
-  Widget showMyDesign() {
-    Size screenSize = MediaQuery.of(context).size;
+  Color fontColor(Color backgroundColor) {
+    int brightness = [
+      backgroundColor.red,
+      backgroundColor.green,
+      backgroundColor.blue
+    ].reduce(max);
+    if (brightness > 180) {
+      return Colors.black;
+    } else {
+      return Colors.white;
+    }
+  }
+}
+
+class MyDesignPreviewWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final ImageUploadController upload_controller =
+        Provider.of<ImageUploadController>(context);
     return FutureBuilder<MyDesignData>(
-      future: future_my_design_data,
+      future: upload_controller.myDesignDataFuture,
       builder: (BuildContext context, AsyncSnapshot<MyDesignData> snapshot) {
-        if (snapshot.connectionState == ConnectionState.done &&
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator();
+        } else if (snapshot.connectionState == ConnectionState.done &&
             null != snapshot.data) {
           var myDesignData = snapshot.data;
           return ConstrainedBox(
@@ -194,14 +209,14 @@ class UploadImageDemoState extends State<UploadImageDemo> {
                                       myDesignData.myDesignColorTable[i][j]][2],
                                   1,
                                 ),
-                                border: markLineBorder(i, j,
+                                border: Utils().markLineBorder(i, j,
                                     myDesignData.myDesignColorTable.length),
                               ),
                               child: AutoSizeText(
                                 "${myDesignData.myDesignColorTable[i][j] + 1}",
                                 maxLines: 1,
                                 style: TextStyle(
-                                    color: fontColor(
+                                    color: Utils().fontColor(
                                   Color.fromRGBO(
                                     myDesignData.palette[myDesignData
                                         .myDesignColorTable[i][j]][0],
@@ -238,33 +253,27 @@ class UploadImageDemoState extends State<UploadImageDemo> {
             ),
           );
         } else {
-          return CircularProgressIndicator();
+          return SizedBox.shrink();
         }
       },
     );
   }
+}
 
-  Color fontColor(Color backgroundColor) {
-    int brightness = [
-      backgroundColor.red,
-      backgroundColor.green,
-      backgroundColor.blue
-    ].reduce(max);
-    if (brightness > 180) {
-      return Colors.black;
-    } else {
-      return Colors.white;
-    }
-  }
+class MyDesignColorPalette extends StatelessWidget {
+  final List<String> columnTitles = ["", "色相", "彩度", "明度"];
 
-  Widget showColorPalette() {
-    Size screenSize = MediaQuery.of(context).size;
+  @override
+  Widget build(BuildContext context) {
+    final ImageUploadController upload_controller =
+        Provider.of<ImageUploadController>(context);
 
-    List<String> columnTitles = ["", "色相", "彩度", "明度"];
     return FutureBuilder<MyDesignData>(
-      future: future_my_design_data,
+      future: upload_controller.myDesignDataFuture,
       builder: (BuildContext context, AsyncSnapshot<MyDesignData> snapshot) {
-        if (snapshot.connectionState == ConnectionState.done &&
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator();
+        } else if (snapshot.connectionState == ConnectionState.done &&
             null != snapshot.data) {
           var myDesignData = snapshot.data;
           return ConstrainedBox(
@@ -321,7 +330,7 @@ class UploadImageDemoState extends State<UploadImageDemo> {
                             maxLines: 1,
                             style: TextStyle(
                               fontSize: 20,
-                              color: fontColor(
+                              color: Utils().fontColor(
                                 Color.fromRGBO(
                                   myDesignData.palette[i][0],
                                   myDesignData.palette[i][1],
@@ -373,82 +382,71 @@ class UploadImageDemoState extends State<UploadImageDemo> {
             ),
           );
         } else {
-          return CircularProgressIndicator();
+          return SizedBox.shrink();
         }
       },
+    );
+  }
+}
+
+class MyDesigner extends StatelessWidget {
+  Widget appBarMain() {
+    return AppBar(
+      leading: Icon(Icons.menu),
+      title: const Text('AC MyDesigner'),
+      backgroundColor: Colors.orange,
+      centerTitle: true,
+      actions: <Widget>[
+        IconButton(
+          icon: Icon(
+            Icons.face,
+            color: Colors.white,
+          ),
+        ),
+        IconButton(
+          icon: Icon(
+            Icons.email,
+            color: Colors.white,
+          ),
+        ),
+        IconButton(
+          icon: Icon(
+            Icons.favorite,
+            color: Colors.white,
+          ),
+        ),
+      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    Size screenSize = MediaQuery.of(context).size;
     return Scaffold(
-      appBar: appBarMain(),
-      body: Center(
-        child: Container(
-          child: SingleChildScrollView(
+        appBar: appBarMain(),
+        body: Center(
             child: Container(
-              padding: EdgeInsets.all(30.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  showImage(),
-                  Padding(
-                    padding: EdgeInsets.all(20),
-                    child: OutlinedButton(
-                      onPressed: chooseImage,
-                      child: Text('Choose Image'),
-                    ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.all(20),
-                    child: OutlinedButton(
-                      onPressed: startUpload,
-                      child: Text('Upload Image'),
-                    ),
-                  ),
-                  Wrap(
-                    direction: Axis.horizontal,
-
-                    // mainAxisSize: MainAxisSize.max,
-                    // mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Padding(
-                        padding: EdgeInsets.all(20),
-                        child: showMyDesign(),
-                      ),
-                      // ConstrainedBox(
-                      //   constraints: BoxConstraints(maxWidth: 300),
-                      //   child: SizedBox(
-                      //     width: screenSize.width * 0.6,
-                      //     child: ElevatedButton(
-                      //       child: Text('Happy Flutter'),
-                      //       onPressed: () {},
-                      //     ),
-                      //   ),
-                      // ),
-                      Padding(
-                        padding: EdgeInsets.all(20),
-                        child: showColorPalette(),
-                      ),
-                    ],
-                  ),
-                  // SelectableText(
-                  //   status,
-                  //   textAlign: TextAlign.center,
-                  //   style: TextStyle(
-                  //     color: Colors.green,
-                  //     fontWeight: FontWeight.w500,
-                  //     fontSize: 20.0,
-                  //   ),
-                  // ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+                child: SingleChildScrollView(
+                    child: Container(
+                        padding: EdgeInsets.all(30.0),
+                        child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              PickedImageWidget(),
+                              ImageUploadButtonWidget(),
+                              Wrap(
+                                direction: Axis.horizontal,
+                                children: <Widget>[
+                                  Padding(
+                                    padding: EdgeInsets.all(20),
+                                    child: MyDesignPreviewWidget(),
+                                  ),
+                                  Padding(
+                                    padding: EdgeInsets.all(20),
+                                    child: MyDesignColorPalette(),
+                                  ),
+                                ],
+                              ),
+                            ]))))));
   }
 }
 
