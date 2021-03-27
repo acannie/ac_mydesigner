@@ -15,7 +15,7 @@ class ImageUploadController with ChangeNotifier {
 
   Future<MyDesignData> get myDesignDataFuture => _myDesignDataFuture;
 
-  static final String uploadEndPoint = 'https://mcw4n849t9.execute-api.ap-northeast-1.amazonaws.com/Prod/ac_mydesign';
+  static final String uploadEndPoint = 'https://pup9ceo6uc.execute-api.ap-northeast-1.amazonaws.com/Prod/ac_mydesign';
 
   Future<MyDesignData> upload(MemoryImage image) async {
     var url = Uri.parse(uploadEndPoint);
