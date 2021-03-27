@@ -5,6 +5,7 @@ import 'create_mydesign.dart';
 import 'create_palette.dart';
 import 'pick_image.dart';
 
+// ページ全体のレイアウトを生成
 class MyDesigner extends StatelessWidget {
   Widget appBarMain() {
     return AppBar(

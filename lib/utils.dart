@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+// ロジック系の関数
 class Utils {
   Border markLineBorder(int i, int j, int n) {
     int halfwayPoint = (n / 2).round();

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
+// FEに画像がアップロードされたことを通知
 class PickedImageController with ChangeNotifier {
   Future<MemoryImage> _imageFuture;
 
@@ -19,6 +20,7 @@ class PickedImageController with ChangeNotifier {
   }
 }
 
+// 画像を FE にアップロード
 class PickedImageWidget extends StatelessWidget {
   final PickedImageController controller = PickedImageController();
 

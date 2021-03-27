@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'mydesign_model.dart';
 import 'pick_image.dart';
 
+// 画像ファイルを POST request でサーバに送信
 class ImageUploadController with ChangeNotifier {
   Future<MyDesignData> _myDesignDataFuture;
 
@@ -35,6 +36,7 @@ class ImageUploadController with ChangeNotifier {
   }
 }
 
+// 画像ファイルをアップロード
 class ImageUploadButtonWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {

@@ -9,6 +9,7 @@ void main() {
   runApp(MyApp());
 }
 
+// ルートの Widget
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+// サーバから受け取る JSON のモデル
 class MyDesignData {
   final List<List<int>> palette;
   final List<List<int>> myDesignColorTable;

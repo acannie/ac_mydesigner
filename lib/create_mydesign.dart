@@ -6,6 +6,7 @@ import 'mydesign_model.dart';
 import 'upload_image.dart';
 import 'utils.dart';
 
+// マイデザインのプレビューを生成
 class MyDesignPreviewWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {

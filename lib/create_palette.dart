@@ -6,6 +6,7 @@ import 'utils.dart';
 import 'upload_image.dart';
 import 'mydesign_model.dart';
 
+// マイデザインのパレットを生成
 class MyDesignColorPalette extends StatelessWidget {
   final List<String> columnTitles = ["", "色相", "彩度", "明度"];
 
