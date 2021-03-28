@@ -24,98 +24,65 @@ class MyDesignColorPalette extends StatelessWidget {
             null != snapshot.data) {
           var myDesignData = snapshot.data;
           return ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: 300),
-            child: Column(
-              children: [
-                // index
-                Row(
-                  children: columnTitles
-                      .map(
-                        (columnTitle) => Expanded(
-                          flex: 1,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.black),
-                              color: Colors.white,
-                            ),
-                            // width: screenSize.width * 0.1,
-                            // height: screenSize.height * 0.025,
-                            child: AutoSizeText(
-                              columnTitle.toString(),
-                              maxLines: 1,
-                              style: TextStyle(
-                                fontSize: 20,
-                                color: Colors.black,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                      )
-                      .toList(),
-                ),
-                // information of each color
-                for (var i = 0; i < myDesignData.myDesignPalette.length; i++)
-                  Row(
-                    children: [
-                      Expanded(
-                        flex: 1,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.black),
-                            color: Color.fromRGBO(
-                              myDesignData.palette[i][0],
-                              myDesignData.palette[i][1],
-                              myDesignData.palette[i][2],
-                              1,
-                            ),
-                          ),
-                          // width: screenSize.width * 0.1,
-                          // height: screenSize.height * 0.025,
-                          child: AutoSizeText(
-                            "${i + 1}",
-                            maxLines: 1,
-                            style: TextStyle(
-                              fontSize: 20,
-                              color: Utils().fontColor(
-                                Color.fromRGBO(
-                                  myDesignData.palette[i][0],
-                                  myDesignData.palette[i][1],
-                                  myDesignData.palette[i][2],
-                                  1,
+              constraints: BoxConstraints(maxWidth: 300),
+              child: Table(
+                border: TableBorder.all(),
+                defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                children: [
+                      new TableRow(
+                          children: columnTitles
+                              .map(
+                                (columnTitle) => new Container(
+                                  child: AutoSizeText(
+                                    columnTitle.toString(),
+                                    maxLines: 1,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      color: Colors.black,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ),
-                              ),
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ),
-                      for (var factor = 0;
-                          factor < myDesignData.myDesignPalette[i].length;
-                          factor++)
-                        Expanded(
-                          flex: 1,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.black),
-                              color: Colors.white,
-                            ),
-                            child: AutoSizeText(
-                              "${myDesignData.myDesignPalette[i][factor]}",
-                              maxLines: 1,
-                              style: TextStyle(
-                                fontSize: 20,
-                                color: Colors.black,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                    ],
-                  )
-              ],
-            ),
-          );
+                              )
+                              .toList())
+                    ] +
+                    List<TableRow>.generate(15, (palette_index) {
+                      var color = Color.fromRGBO(
+                        myDesignData.palette[palette_index][0],
+                        myDesignData.palette[palette_index][1],
+                        myDesignData.palette[palette_index][2],
+                        1,
+                      );
+                      return TableRow(
+                          children: [
+                                Container(
+                                  color: color,
+                                  child: AutoSizeText(
+                                    "${palette_index + 1}",
+                                    maxLines: 1,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      color: Utils().fontColor(color),
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ] +
+                              new List<Widget>.generate(3, (factor_index) {
+                                return Container(
+                                  child: AutoSizeText(
+                                    "${myDesignData.myDesignPalette[palette_index][factor_index]}",
+                                    maxLines: 1,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      color: Colors.black,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                );
+                              }));
+                    }),
+              ));
         } else if (null != snapshot.error) {
           return Container(
             child: Text(
