@@ -23,59 +23,55 @@ class MyDesignPreviewWidget extends StatelessWidget {
           return ConstrainedBox(
             constraints: BoxConstraints(maxWidth: 600),
             child: Container(
-              child: Column(
-                children: [
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.black),
+              ),
+              child: GridView.count(
+                shrinkWrap: true,
+                primary: false,
+                crossAxisSpacing: 0,
+                mainAxisSpacing: 0,
+                crossAxisCount: 32,
+                children: <Widget>[
                   for (var i = 0;
                       i < myDesignData.myDesignColorTable.length;
                       i++)
-                    Row(
-                      children: [
-                        for (var j = 0;
-                            j < myDesignData.myDesignColorTable.length;
-                            j++)
-                          Expanded(
-                            flex: 1,
-                            child: Container(
-                              // width: 10,
-                              // height: 10,
-                              decoration: BoxDecoration(
-                                color: Color.fromRGBO(
-                                  myDesignData.palette[
-                                      myDesignData.myDesignColorTable[i][j]][0],
-                                  myDesignData.palette[
-                                      myDesignData.myDesignColorTable[i][j]][1],
-                                  myDesignData.palette[
-                                      myDesignData.myDesignColorTable[i][j]][2],
-                                  1,
-                                ),
-                                border: Utils().markLineBorder(i, j,
-                                    myDesignData.myDesignColorTable.length),
-                              ),
-                              child: AutoSizeText(
-                                "${myDesignData.myDesignColorTable[i][j] + 1}",
-                                maxLines: 1,
-                                style: TextStyle(
-                                    color: Utils().fontColor(
-                                  Color.fromRGBO(
-                                    myDesignData.palette[myDesignData
-                                        .myDesignColorTable[i][j]][0],
-                                    myDesignData.palette[myDesignData
-                                        .myDesignColorTable[i][j]][1],
-                                    myDesignData.palette[myDesignData
-                                        .myDesignColorTable[i][j]][2],
-                                    1,
-                                  ),
-                                )),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
+                    for (var j = 0;
+                        j < myDesignData.myDesignColorTable.length;
+                        j++)
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Color.fromRGBO(
+                            myDesignData.palette[
+                                myDesignData.myDesignColorTable[i][j]][0],
+                            myDesignData.palette[
+                                myDesignData.myDesignColorTable[i][j]][1],
+                            myDesignData.palette[
+                                myDesignData.myDesignColorTable[i][j]][2],
+                            1,
                           ),
-                      ],
-                    ),
+                          border: Utils().markLineBorder(
+                              i, j, myDesignData.myDesignColorTable.length),
+                        ),
+                        child: AutoSizeText(
+                          "${myDesignData.myDesignColorTable[i][j] + 1}",
+                          maxLines: 1,
+                          style: TextStyle(
+                              color: Utils().fontColor(
+                            Color.fromRGBO(
+                              myDesignData.palette[
+                                  myDesignData.myDesignColorTable[i][j]][0],
+                              myDesignData.palette[
+                                  myDesignData.myDesignColorTable[i][j]][1],
+                              myDesignData.palette[
+                                  myDesignData.myDesignColorTable[i][j]][2],
+                              1,
+                            ),
+                          )),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
                 ],
-              ),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.black),
               ),
             ),
           );
