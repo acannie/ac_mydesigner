@@ -44,7 +44,7 @@ class MyDesigner extends StatelessWidget {
             child: Container(
                 child: SingleChildScrollView(
                     child: Container(
-                        padding: EdgeInsets.all(30.0),
+                        padding: EdgeInsets.all(0),
                         child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: <Widget>[

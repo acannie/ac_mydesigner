@@ -8,7 +8,7 @@ import 'mydesign_model.dart';
 
 // マイデザインのパレットを生成
 class MyDesignColorPalette extends StatelessWidget {
-  final List<String> columnTitles = ["", "色相", "彩度", "明度"];
+  final List<String> columnTitles = ["色番号", "色相", "彩度", "明度"];
 
   @override
   Widget build(BuildContext context) {
@@ -25,14 +25,13 @@ class MyDesignColorPalette extends StatelessWidget {
           var myDesignData = snapshot.data;
           return ConstrainedBox(
             constraints: BoxConstraints(maxWidth: 300),
-            child: Column(
-              children: [
-                // index
-                Row(
+            child: Table(
+              children: <TableRow>[
+                TableRow(
                   children: columnTitles
                       .map(
-                        (columnTitle) => Expanded(
-                          flex: 1,
+                        (columnTitle) => TableCell(
+                          // flex: 1,
                           child: Container(
                             decoration: BoxDecoration(
                               border: Border.all(color: Colors.black),
@@ -56,10 +55,10 @@ class MyDesignColorPalette extends StatelessWidget {
                 ),
                 // information of each color
                 for (var i = 0; i < myDesignData.myDesignPalette.length; i++)
-                  Row(
+                  TableRow(
                     children: [
-                      Expanded(
-                        flex: 1,
+                      TableCell(
+                        // flex: 1,
                         child: Container(
                           decoration: BoxDecoration(
                             border: Border.all(color: Colors.black),
@@ -93,8 +92,8 @@ class MyDesignColorPalette extends StatelessWidget {
                       for (var factor = 0;
                           factor < myDesignData.myDesignPalette[i].length;
                           factor++)
-                        Expanded(
-                          flex: 1,
+                        TableCell(
+                          // flex: 1,
                           child: Container(
                             decoration: BoxDecoration(
                               border: Border.all(color: Colors.black),
