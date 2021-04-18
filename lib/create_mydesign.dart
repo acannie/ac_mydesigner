@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:provider/provider.dart';
 
 import 'mydesign_model.dart';
@@ -19,7 +18,8 @@ class MyDesignPreviewWidget extends StatelessWidget {
           return CircularProgressIndicator();
         } else if (snapshot.connectionState == ConnectionState.done &&
             null != snapshot.data) {
-          var myDesignData = snapshot.data;
+          var myDesignData = snapshot.data!;
+          // return CircularProgressIndicator();
           return ConstrainedBox(
             constraints: BoxConstraints(maxWidth: 600),
             child: Container(
@@ -53,7 +53,7 @@ class MyDesignPreviewWidget extends StatelessWidget {
                           border: Utils().markLineBorder(
                               i, j, myDesignData.myDesignColorTable.length),
                         ),
-                        child: AutoSizeText(
+                        child: Text(
                           "${myDesignData.myDesignColorTable[i][j] + 1}",
                           maxLines: 1,
                           style: TextStyle(
