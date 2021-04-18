@@ -11,11 +11,12 @@ import 'pick_image.dart';
 
 // 画像ファイルを POST request でサーバに送信
 class ImageUploadController with ChangeNotifier {
-  Future<MyDesignData> _myDesignDataFuture;
+  Future<MyDesignData>? _myDesignDataFuture;
 
-  Future<MyDesignData> get myDesignDataFuture => _myDesignDataFuture;
+  Future<MyDesignData>? get myDesignDataFuture => _myDesignDataFuture;
 
-  static final String uploadEndPoint = 'https://pup9ceo6uc.execute-api.ap-northeast-1.amazonaws.com/Prod/ac_mydesign';
+  static final String uploadEndPoint =
+      'https://pup9ceo6uc.execute-api.ap-northeast-1.amazonaws.com/Prod/ac_mydesign';
 
   Future<MyDesignData> upload(MemoryImage image) async {
     var url = Uri.parse(uploadEndPoint);
@@ -32,7 +33,7 @@ class ImageUploadController with ChangeNotifier {
         .bytesToString()
         .then((body) => MyDesignData.fromJson(json.decode(body))));
     notifyListeners();
-    return _myDesignDataFuture;
+    return _myDesignDataFuture!;
   }
 }
 
@@ -40,14 +41,14 @@ class ImageUploadController with ChangeNotifier {
 class ImageUploadButtonWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final PickedImageController image_controller =
+    final PickedImageController imageController =
         Provider.of<PickedImageController>(context);
 
-    final ImageUploadController upload_controller =
+    final ImageUploadController uploadController =
         Provider.of<ImageUploadController>(context);
 
     return FutureBuilder<MemoryImage>(
-        future: image_controller.imageFuture,
+        future: imageController.imageFuture,
         builder: (BuildContext context, AsyncSnapshot<MemoryImage> snapshot) {
           if (snapshot.connectionState == ConnectionState.done &&
               null != snapshot.data) {
@@ -56,7 +57,7 @@ class ImageUploadButtonWidget extends StatelessWidget {
               padding: EdgeInsets.all(20),
               child: OutlinedButton(
                 onPressed: () {
-                  return upload_controller.upload(image);
+                  uploadController.upload(image!);
                 },
                 child: Text('Upload Image'),
               ),

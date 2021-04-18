@@ -13,33 +13,16 @@ class MyDesigner extends StatelessWidget {
       title: const Text('AC MyDesigner'),
       backgroundColor: Colors.orange,
       centerTitle: true,
-      actions: <Widget>[
-        IconButton(
-          icon: Icon(
-            Icons.face,
-            color: Colors.white,
-          ),
-        ),
-        IconButton(
-          icon: Icon(
-            Icons.email,
-            color: Colors.white,
-          ),
-        ),
-        IconButton(
-          icon: Icon(
-            Icons.favorite,
-            color: Colors.white,
-          ),
-        ),
-      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: appBarMain(),
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(100),
+          child: appBarMain(),
+        ),
         body: Center(
             child: Container(
                 child: SingleChildScrollView(

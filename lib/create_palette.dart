@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:provider/provider.dart';
 
 import 'utils.dart';
@@ -18,11 +17,14 @@ class MyDesignColorPalette extends StatelessWidget {
     return FutureBuilder<MyDesignData>(
       future: upload_controller.myDesignDataFuture,
       builder: (BuildContext context, AsyncSnapshot<MyDesignData> snapshot) {
+        // return CircularProgressIndicator();
+
         if (snapshot.connectionState == ConnectionState.waiting) {
           return CircularProgressIndicator();
         } else if (snapshot.connectionState == ConnectionState.done &&
             null != snapshot.data) {
-          var myDesignData = snapshot.data;
+          var myDesignData = snapshot.data!;
+          List<List<int>>? pallete = myDesignData.myDesignPalette;
           return ConstrainedBox(
             constraints: BoxConstraints(maxWidth: 300),
             child: Table(
@@ -39,7 +41,7 @@ class MyDesignColorPalette extends StatelessWidget {
                             ),
                             // width: screenSize.width * 0.1,
                             // height: screenSize.height * 0.025,
-                            child: AutoSizeText(
+                            child: Text(
                               columnTitle.toString(),
                               maxLines: 1,
                               style: TextStyle(
@@ -71,7 +73,7 @@ class MyDesignColorPalette extends StatelessWidget {
                           ),
                           // width: screenSize.width * 0.1,
                           // height: screenSize.height * 0.025,
-                          child: AutoSizeText(
+                          child: Text(
                             "${i + 1}",
                             maxLines: 1,
                             style: TextStyle(
@@ -99,7 +101,7 @@ class MyDesignColorPalette extends StatelessWidget {
                               border: Border.all(color: Colors.black),
                               color: Colors.white,
                             ),
-                            child: AutoSizeText(
+                            child: Text(
                               "${myDesignData.myDesignPalette[i][factor]}",
                               maxLines: 1,
                               style: TextStyle(

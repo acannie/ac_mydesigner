@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        title: 'AC MyDesigner',
+        title: 'Emoji Art Maker',
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
